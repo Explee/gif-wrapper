@@ -1,14 +1,33 @@
-lib-cov
-*.seed
-*.log
-*.csv
-*.dat
-*.out
-*.pid
-*.gz
+build
+.DS_Store
+.lock-wscript
+test/images/*.png
+examples/*.png
+examples/*.jpg
+examples/pathfindTester
+testing
+export
+.pomo
+node_modules
+import/*
+a.out
+*.png
 
-pids
-logs
-results
+#emacs crap
+src/*~
+src/#*
+src/*.gch
 
-npm-debug.log
+#C tests
+src/a.out
+src/*.png
+src/explee
+src/debug
+src/test/*-testSuite
+src/test/*-testsuite
+src/test/*.o
+src/test/*.a
+
+# Vim cruft
+*.swp
+*.un~
