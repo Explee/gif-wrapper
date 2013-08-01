@@ -4,7 +4,9 @@
       'target_name': 'gif',
       'sources': [ 'src/gif-wrapper.cc',
                     'src/init.cc',
-                    'headers/gif-wrapper.h'
+		    'src/gif-colors.cpp',
+                    'headers/gif-wrapper.h',
+		    'headers/gif-colors.h'
                  ],
   'defines': [
           'DEBUG_MODE'

@@ -19,6 +19,7 @@
 #include <time.h>
 
 #include "../headers/gif-wrapper.h"
+#include "../headers/gif-colors.h"
 
 using namespace v8;
 using namespace std;
@@ -107,7 +108,10 @@ Handle<Value> GifWrapper::Decode(const Arguments& args){
 Handle<Value> GifWrapper::Push(const Arguments& args){
     HandleScope scope;
     GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
-
+    Local<v8::Object> obj = args[0]->ToObject();
+    uchar *data = obj->GetIndexedPropertiesPixelData();
+  /*  Mat test = Mat(Size(gif->width, gif->height), CV_8UC1, (uchar *)data);
+    imwrite("yo.png", test);*/
     return scope.Close(Undefined());
 }
 

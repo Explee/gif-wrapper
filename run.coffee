@@ -7,6 +7,8 @@ arr = gif.decode("import/homer.gif");
 console.log("Ok");
 gif.info();
 
+gif.push(arr[0]);
+
 gif.encode();
 console.log("Ok");
 
