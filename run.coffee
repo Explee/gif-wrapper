@@ -1,6 +1,6 @@
-NodeGif = require('./index.js');
+GifWrapper = require('./index.js');
 
-gif = new NodeGif(512, 512);
+gif = new GifWrapper(512, 512);
 
 gif.decode("import/homer.gif");
 console.log("Ok");

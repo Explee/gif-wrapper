@@ -18,35 +18,35 @@
 #include <string>
 #include <time.h>
 
-#include "../headers/node-gif.h"
+#include "../headers/gif-wrapper.h"
 
 using namespace v8;
 using namespace std;
 using namespace cv;
 
-Persistent<FunctionTemplate> NodeGif::constructor;
+Persistent<FunctionTemplate> GifWrapper::constructor;
 
 
-Handle<Value> NodeGif::GetDelay(Local<v8::String> prop, const AccessorInfo &info) {
+Handle<Value> GifWrapper::GetDelay(Local<v8::String> prop, const AccessorInfo &info) {
     HandleScope scope;
-    NodeGif* gif = ObjectWrap::Unwrap<NodeGif>(info.This());
+    GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(info.This());
     return scope.Close(v8::Integer::New(gif->delay));
 }
 
-Handle<Value> NodeGif::SetDelay(const Arguments &args) {
+Handle<Value> GifWrapper::SetDelay(const Arguments &args) {
     HandleScope scope;
-    NodeGif* gif = ObjectWrap::Unwrap<NodeGif>(args.This());
+    GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
     int d = args[0]->ToInteger()->Value();
     gif->setDelay(d);
     return scope.Close(Undefined());
 }
 
-Handle<Value> NodeGif::Encode(const Arguments& args){
+Handle<Value> GifWrapper::Encode(const Arguments& args){
     HandleScope scope;
     return scope.Close(Undefined());
 }
 
-uchar *NodeGif::gifGetColor(GifFileType &GifFile, const cv::Mat &test){
+uchar *GifWrapper::gifGetColor(GifFileType &GifFile, const cv::Mat &test){
     cv::Mat ungif = Mat(test.size(), CV_8UC3, Scalar(0,0,0));
 
     unsigned char index = 0;
@@ -66,7 +66,7 @@ return ungif.data;
 }
 
 
-void    NodeGif::gifDecoder(const char *filename) {
+void    GifWrapper::gifDecoder(const char *filename) {
   int *error;
   GifFileType *GifFile = DGifOpenFileName(filename, error);
 
@@ -89,27 +89,27 @@ void    NodeGif::gifDecoder(const char *filename) {
 
 }
 
-Handle<Value> NodeGif::Decode(const Arguments& args){
+Handle<Value> GifWrapper::Decode(const Arguments& args){
     HandleScope scope;
-    NodeGif* gif = ObjectWrap::Unwrap<NodeGif>(args.This());
+    GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
     v8::String::Utf8Value v8string(args[0]->ToString());
     std::string filename = std::string(*v8string);
     gif->gifDecoder(filename.c_str());
     return scope.Close(Undefined());
 }
 
-Handle<Value> NodeGif::Push(const Arguments& args){
+Handle<Value> GifWrapper::Push(const Arguments& args){
     HandleScope scope;
-    NodeGif* gif = ObjectWrap::Unwrap<NodeGif>(args.This());
+    GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
 
     return scope.Close(Undefined());
 }
 
-void NodeGif::Initialize(Handle<Object> target) {
+void GifWrapper::Initialize(Handle<Object> target) {
     HandleScope scope;
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(NodeGif::New));
+    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(GifWrapper::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(v8::String::NewSymbol("NodeGif"));
+    constructor->SetClassName(v8::String::NewSymbol("GifWrapper"));
 
     Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
     proto->Set(
@@ -133,10 +133,10 @@ void NodeGif::Initialize(Handle<Object> target) {
         FunctionTemplate::New(SetDelay)->GetFunction()
         );
     proto->SetAccessor(v8::String::NewSymbol("delay"), GetDelay);
-    target->Set(v8::String::NewSymbol("NodeGif"), constructor->GetFunction());
+    target->Set(v8::String::NewSymbol("GifWrapper"), constructor->GetFunction());
 }
 
-Handle<Value> NodeGif::New(const Arguments& args) {
+Handle<Value> GifWrapper::New(const Arguments& args) {
     HandleScope scope;
 /*    if (args.Length() < 1){
         cout << "ERROR: Please specify input" << endl;
@@ -151,14 +151,14 @@ Handle<Value> NodeGif::New(const Arguments& args) {
     }
     int width = args[0]->ToInteger()->Value();
     int height = args[1]->ToInteger()->Value();
-    NodeGif* gif = new NodeGif(width, height);
+    GifWrapper* gif = new GifWrapper(width, height);
     cout << GIFLIB_MAJOR ; cout << "." <<  GIFLIB_MINOR;
     cout << "." << GIFLIB_RELEASE << endl;
     gif->Wrap(args.This());
     return (args.This());
 }
 
-NodeGif::NodeGif(int width, int height) {
+GifWrapper::GifWrapper(int width, int height) {
     this->width = width;
     this->height = height;
     this->nbFrames = 0;
@@ -172,16 +172,16 @@ NodeGif::NodeGif(int width, int height) {
 
     }
 
-    NodeGif::~NodeGif() {
+    GifWrapper::~GifWrapper() {
         for (int i=this->frames->size() - 1; i >= 0; i--){
             delete this->frames->at(i);
             this->frames->erase(this->frames->begin()+ i);
         }
     }
 
-    v8::Handle<v8::Value>    NodeGif::Info(const Arguments& args){
+    v8::Handle<v8::Value>    GifWrapper::Info(const Arguments& args){
         HandleScope scope;
-        NodeGif* gif = ObjectWrap::Unwrap<NodeGif>(args.This());
+        GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
         cout << "GifInfo:\twidth: " << gif->width << endl;
         cout << "         \theight: "<< gif->height << endl;
         cout << "         \tnbFrames: "<< gif->nbFrames << endl;

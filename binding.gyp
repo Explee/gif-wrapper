@@ -2,9 +2,9 @@
   'targets': [
     {
       'target_name': 'gif',
-      'sources': [ 'src/node-gif.cc',
+      'sources': [ 'src/gif-wrapper.cc',
                     'src/init.cc',
-                    'headers/node-gif.h'
+                    'headers/gif-wrapper.h'
                  ],
   'defines': [
           'DEBUG_MODE'

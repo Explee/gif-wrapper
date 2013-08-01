@@ -25,7 +25,7 @@ using namespace node;
 #define COLOR_RESOLUTION 8
 
 
-class NodeGif : public node::ObjectWrap {
+class GifWrapper : public node::ObjectWrap {
 private:
 	GifFileType *GifFile;
 	int paletteSize;
@@ -38,8 +38,8 @@ private:
 	int delay;
 	std::vector<uchar *> *frames;
 
-	NodeGif(int width, int height);
-    ~NodeGif();
+	GifWrapper(int width, int height);
+    ~GifWrapper();
 
     inline void	setDelay(int d){this->delay = d;};
     uchar  *gifGetColor(GifFileType &GifFile, const cv::Mat &test);

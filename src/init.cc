@@ -6,12 +6,12 @@
 //
 
 #include <stdio.h>
-#include "../headers/node-gif.h"
+#include "../headers/gif-wrapper.h"
 
 extern "C" void
 init (Handle<Object> target) {
   HandleScope scope;
-  NodeGif::Initialize(target);
+  GifWrapper::Initialize(target);
 }
 
 NODE_MODULE(gif,init);
