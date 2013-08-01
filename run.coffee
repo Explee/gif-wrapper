@@ -2,7 +2,8 @@ GifWrapper = require('./index.js');
 
 gif = new GifWrapper(512, 512);
 
-gif.decode("import/homer.gif");
+arr = gif.decode("import/homer.gif");
+###console.log(arr[0]);###
 console.log("Ok");
 gif.info();
 

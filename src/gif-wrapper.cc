@@ -95,7 +95,13 @@ Handle<Value> GifWrapper::Decode(const Arguments& args){
     v8::String::Utf8Value v8string(args[0]->ToString());
     std::string filename = std::string(*v8string);
     gif->gifDecoder(filename.c_str());
-    return scope.Close(Undefined());
+    Handle<v8::Array> arr = v8::Array::New(gif->frames->size());
+    for (unsigned int j = 0; j < gif->frames->size(); j++){
+        Handle<v8::Object> obj = v8::Object::New();
+        obj->SetIndexedPropertiesToPixelData((uint8_t *)gif->frames->at(j), (gif->width * gif->height) );
+        arr->Set(j, obj);
+    }
+    return scope.Close(arr);
 }
 
 Handle<Value> GifWrapper::Push(const Arguments& args){
