@@ -172,16 +172,21 @@ Handle<Value> GifWrapper::Encode(const Arguments& args){
     return scope.Close(Undefined());
 }
 
-uchar *GifWrapper::gifGetColor(GifFileType &GifFile, const cv::Mat &test){
-    cv::Mat ungif = Mat(test.size(), CV_8UC3, Scalar(0,0,0));
+uchar *GifWrapper::gifGetColor(GifFileType &GifFile, const uchar *data){
+    cv::Mat ungif = Mat(Size(this->width, this->height), CV_8UC3, Scalar(0,0,0));
+   // uchar *ungif = (uchar *)malloc(this->width * this->height * 3 * sizeof(uchar));
 
     unsigned char index = 0;
     if (GifFile.SColorMap)
     {
-        for (unsigned int y=0; y < ungif.rows; y++){
-          for (unsigned int x=0; x < ungif.cols; x++){
-            index = test.at<uchar>(y,x);
-            ungif.at<Vec3b>(y,x)[2] = GifFile.SColorMap->Colors[index].Red;
+        for (unsigned int y=0; y < this->height; y++){
+          for (unsigned int x=0; x < this->width; x++){
+            index = data[(this->height * y) + x ];
+  /*          ungif[(this->height * y ) + x + 2] =  GifFile.SColorMap->Colors[index].Red;
+            ungif[(this->height * y ) + x + 1] =  GifFile.SColorMap->Colors[index].Green;
+            ungif[(this->height * y) + x] =  GifFile.SColorMap->Colors[index].Blue;
+
+*/            ungif.at<Vec3b>(y,x)[2] = GifFile.SColorMap->Colors[index].Red;
             ungif.at<Vec3b>(y,x)[1] = GifFile.SColorMap->Colors[index].Green;
             ungif.at<Vec3b>(y,x)[0] = GifFile.SColorMap->Colors[index].Blue;
 
@@ -209,8 +214,8 @@ void    GifWrapper::gifDecoder(const char *filename) {
       SavedImage *img = &GifFile->SavedImages[i];
       uchar *data = (uchar *)malloc(this->width * this->height * sizeof(uchar));
       memcpy(data, img->RasterBits, this->width * this->height * sizeof(uchar));
-      cv::Mat test = cv::Mat(cv::Size(this->width, this->height), CV_8UC1, data);
-      this->frames->push_back(gifGetColor(*GifFile, test));
+      //cv::Mat test = cv::Mat(cv::Size(this->width, this->height), CV_8UC1, data);
+      this->frames->push_back(gifGetColor(*GifFile, data));
   }
 
 }
@@ -236,8 +241,6 @@ Handle<Value> GifWrapper::Push(const Arguments& args){
     Local<v8::Object> obj = args[0]->ToObject();
     uchar *data = obj->GetIndexedPropertiesPixelData();
     gif->framesToEncode->push_back(data);
-  /*  Mat test = Mat(Size(gif->width, gif->height), CV_8UC1, (uchar *)data);
-    imwrite("yo.png", test);*/
     return scope.Close(Undefined());
 }
 

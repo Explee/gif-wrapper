@@ -43,7 +43,7 @@ private:
     ~GifWrapper();
 
     inline void	setDelay(int d){this->delay = d;};
-    uchar  *gifGetColor(GifFileType &GifFile, const cv::Mat &test);
+    uchar  *gifGetColor(GifFileType &GifFile, const uchar *data);
     void gifDecoder(const char *filename);
 	// gif functions
 	static v8::Handle<v8::Value> Info(const Arguments& args);
