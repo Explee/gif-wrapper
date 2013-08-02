@@ -17,7 +17,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "gif_lib.h"
-
+#include "gif-colors.h"
 using namespace v8;
 using namespace node;
 
@@ -37,6 +37,7 @@ private:
 	int nbFrames;
 	int delay;
 	std::vector<uchar *> *frames;
+	std::vector<uchar *>* framesToEncode;
 
 	GifWrapper(int width, int height);
     ~GifWrapper();

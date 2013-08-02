@@ -28,6 +28,26 @@ using namespace cv;
 Persistent<FunctionTemplate> GifWrapper::constructor;
 
 
+int findNearestColor(int r, int g, int b, ColorMapObject *ColorMap){
+
+    int idx = 0;
+    int res = INT_MAX;
+    int min = INT_MAX;
+    for (unsigned int i = 0; i <= 255; i++){
+        int rr = std::abs(r - ColorMap->Colors[i].Red);
+        int gg = std::abs(r - ColorMap->Colors[i].Green);
+        int bb = std::abs(r - ColorMap->Colors[i].Blue);
+        res  = rr + gg + bb;
+        if(res <= min){
+            idx = i;
+            min = res;
+        }
+    }
+
+    return idx;
+}
+
+
 Handle<Value> GifWrapper::GetDelay(Local<v8::String> prop, const AccessorInfo &info) {
     HandleScope scope;
     GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(info.This());
@@ -42,8 +62,113 @@ Handle<Value> GifWrapper::SetDelay(const Arguments &args) {
     return scope.Close(Undefined());
 }
 
+
+cv::Mat quantification(cv::Mat &img, ColorMapObject *ColorMap){
+    cv::Mat q = Mat(img.size(), CV_8UC1, Scalar(0));
+    if (ColorMap){
+        for (unsigned int y=0; y < img.rows; y++){
+            for (unsigned int x=0; x < img.cols; x++){
+                q.at<uchar>(y,x) = (uchar)findNearestColor(img.at<Vec3b>(y,x)[0], img.at<Vec3b>(y,x)[1], img.at<Vec3b>(y,x)[2], ColorMap);
+            }
+        }
+        imwrite("quantified.png", q);
+    } else {
+        cout << "Error in Quantization" << endl;
+        exit(-1);
+    }
+    return q;
+}
+
+static bool AddLoop(GifFileType *gf){
+    int  error;
+    if (EGifPutExtensionLeader(gf, error) == GIF_ERROR) {
+     return false;
+ }
+ if (EGifPutExtensionTrailer(gf) == GIF_ERROR) {
+     return false;
+ }
+ return true;
+}
+
+
 Handle<Value> GifWrapper::Encode(const Arguments& args){
     HandleScope scope;
+    GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
+    
+      int paletteSize=256;
+    ColorMapObject* outputPalette;
+    int *error;
+    GifFileType *GifFile = EGifOpenFileName("test.gif", false, error);
+
+   outputPalette = GifMakeMapObject(256, gifColors);//GifMakeMapObject(paletteSize, NULL);
+   GifColorType *c = outputPalette->Colors;
+
+   if (!outputPalette) exit(EXIT_FAILURE);
+
+   if (EGifPutScreenDesc(
+    GifFile,
+    gif->width, gif->height, 8, 0,
+    outputPalette
+    ) == GIF_ERROR) exit(EXIT_FAILURE);
+
+  /*char netscape_extension[] = "NETSCAPE2.0";
+        EGifPutExtension(GifFile, APPLICATION_EXT_FUNC_CODE, 11, netscape_extension);
+        char animation_extension[] = { 1, 1, 0 }; // repeat one time
+        EGifPutExtension(GifFile, APPLICATION_EXT_FUNC_CODE, 3, animation_extension);
+ */    AddLoop(GifFile);
+
+        for (unsigned int p = 1; p < gif->framesToEncode->size(); p++){
+            Mat src = Mat(Size(gif->width, gif->height), CV_8UC1, gif->framesToEncode->at(p));
+            cvtColor(src.clone(), src, CV_GRAY2RGB);
+            Mat q = quantification(src, outputPalette);
+    //imwrite("test.png", src);
+            int npix = q.size().width * q.size().height;
+            int gifsx = q.size().width;
+            int gifsy = q.size().height;
+            uchar *output;
+            output = (uchar *)malloc(npix * sizeof(uchar *));
+
+
+            int delay = 1;
+
+            for (int i = 0, j=0; i < npix; i++) {
+                int minIndex = 0,
+                minDist = 3 * 256 * 256;
+            }
+
+        static unsigned char
+        ExtStr[4] = { 0x04, 0x00, 0x00, 0xff };
+
+
+        ExtStr[0] = (false) ? 0x06 : 0x04;
+        ExtStr[1] = delay % 256;
+        ExtStr[2] = delay / 256;
+
+    /* Dump graphics control block. */
+        EGifPutExtension(GifFile, GRAPHICS_EXT_FUNC_CODE, 4, ExtStr);
+
+
+        if (EGifPutImageDesc(
+         GifFile,
+         0, 0, gifsx, gifsy, false, NULL
+         ) == GIF_ERROR)  exit(EXIT_FAILURE);
+
+            uchar * data = (uchar *)malloc(gifsx * sizeof(uchar) + 1);
+
+        int j = 0;
+        while( j < gifsy){
+            mempcpy(data, &q.data[(j * gifsx)], gifsx);
+
+            if (EGifPutLine(GifFile, data, gifsx) == GIF_ERROR) {
+                cout << "error in putline" << endl;
+                exit(-1);
+            }
+
+            j++;
+        }
+    }
+
+    if (EGifCloseFile(GifFile) == GIF_ERROR) exit(EXIT_FAILURE);
     return scope.Close(Undefined());
 }
 
@@ -110,6 +235,7 @@ Handle<Value> GifWrapper::Push(const Arguments& args){
     GifWrapper* gif = ObjectWrap::Unwrap<GifWrapper>(args.This());
     Local<v8::Object> obj = args[0]->ToObject();
     uchar *data = obj->GetIndexedPropertiesPixelData();
+    gif->framesToEncode->push_back(data);
   /*  Mat test = Mat(Size(gif->width, gif->height), CV_8UC1, (uchar *)data);
     imwrite("yo.png", test);*/
     return scope.Close(Undefined());
@@ -175,6 +301,7 @@ GifWrapper::GifWrapper(int width, int height) {
     this->delay = 100;
     this->paletteSize = 256;
     this->frames = new std::vector<uchar *>();
+    this->framesToEncode = new std::vector<uchar *>();
     /* if ((GifFileOut = EGifOpenFileHandle(fileno(pFile), &ErrorCode)) == NULL) {
         cout << "Cannot open file for encoding gif" << endl;
         exit(EXIT_FAILURE);
@@ -186,6 +313,10 @@ GifWrapper::GifWrapper(int width, int height) {
         for (int i=this->frames->size() - 1; i >= 0; i--){
             delete this->frames->at(i);
             this->frames->erase(this->frames->begin()+ i);
+        }
+        for (int i=this->framesToEncode->size() - 1; i >= 0; i--){
+            delete this->framesToEncode->at(i);
+            this->framesToEncode->erase(this->framesToEncode->begin()+ i);
         }
     }
 
